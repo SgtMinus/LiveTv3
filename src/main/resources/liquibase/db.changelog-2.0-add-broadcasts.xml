@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
+    <changeSet id="2.0.0" author="g.makarov">
+        <preConditions>
+            <not>
+                <tableExists tableName="broadcasts"/>
+            </not>
+        </preConditions>
+        <createTable tableName="broadcasts">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true"/>
+            </column>
+
+            <column name="url" type="VARCHAR(255)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="created" type="TIMESTAMP" defaultValue="${now}">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="updated" type="TIMESTAMP" defaultValue="${now}">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="2.0.1" author="g.makarov">
+        <preConditions>
+            <not>
+                <tableExists tableName="comment"/>
+            </not>
+        </preConditions>
+        <createTable tableName="comments">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true"/>
+            </column>
+
+            <column name="broadcast_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="author_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="comment_status" type="VARCHAR(100)">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="body" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="created" type="TIMESTAMP" defaultValue="${now}">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="updated" type="TIMESTAMP" defaultValue="${now}">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+
+    <changeSet id="2.0.2" author="g.makarov">
+        <addForeignKeyConstraint
+                constraintName="fk_comment_author"
+                referencedTableName="users"
+                baseColumnNames="author_id"
+                baseTableName="comments" referencedColumnNames="id"/>
+    </changeSet>
+
+    <changeSet id="2.0.3" author="g.makarov">
+        <addForeignKeyConstraint
+                constraintName="fk_comment_broadcast"
+                referencedTableName="broadcasts"
+                baseColumnNames="broadcast_id"
+                baseTableName="comments" referencedColumnNames="id"/>
+    </changeSet>
+
+    <changeSet id="2.0.4" author="g.makarov">
+        <preConditions>
+            <tableExists tableName="broadcasts"/>
+        </preConditions>
+        <insert tableName="broadcasts">
+            <column name="url" value="FIRST_BROADCAST"/>
+            <column name="name" value="FIRST_BROADCAST"/>
+        </insert>
+        <insert tableName="broadcasts">
+            <column name="url" value="SECOND_BROADCAST"/>
+            <column name="name" value="SECOND_BROADCAST"/>
+        </insert>
+        <insert tableName="broadcasts">
+            <column name="url" value="THIRD_BROADCAST"/>
+            <column name="name" value="THIRD_BROADCAST"/>
+        </insert>
+        <insert tableName="broadcasts">
+            <column name="url" value="FOURTH_BROADCAST"/>
+            <column name="name" value="FOURTH_BROADCAST"/>
+        </insert>
+        <insert tableName="broadcasts">
+            <column name="url" value="FIFTH_BROADCAST"/>
+            <column name="name" value="FIFTH_BROADCAST"/>
+        </insert>
+        <insert tableName="broadcasts">
+            <column name="url" value="SIXTH_BROADCAST"/>
+            <column name="name" value="SIXTH_BROADCAST"/>
+        </insert>
+        <insert tableName="broadcasts">
+            <column name="url" value="SEVENTH_BROADCAST"/>
+            <column name="name" value="SEVENTH_BROADCAST"/>
+        </insert>
+        <insert tableName="broadcasts">
+            <column name="url" value="EIGHTH_BROADCAST"/>
+            <column name="name" value="EIGHTH_BROADCAST"/>
+        </insert>
+        <insert tableName="broadcasts">
+            <column name="url" value="NINTH_BROADCAST"/>
+            <column name="name" value="NINTH_BROADCAST"/>
+        </insert>
+        <insert tableName="broadcasts">
+            <column name="url" value="TENTH_BROADCAST"/>
+            <column name="name" value="TENTH_BROADCAST"/>
+        </insert>
+    </changeSet>
+</databaseChangeLog>

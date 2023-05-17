@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
+
+    <changeSet id="3.0.0" author="g.makarov">
+        <preConditions>
+            <not>
+                <tableExists tableName="interests"/>
+            </not>
+        </preConditions>
+        <createTable tableName="interests">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true"/>
+            </column>
+
+            <column name="interest" type="BIGINT" defaultValue="0">
+            </column>
+
+            <column name="user_id" type="BIGINT">
+            </column>
+
+            <column name="comment_id" type="BIGINT">
+            </column>
+
+            <column name="created" type="TIMESTAMP" defaultValue="${now}">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="updated" type="TIMESTAMP" defaultValue="${now}">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="3.0.1" author="g.makarov">
+        <addForeignKeyConstraint
+                constraintName="fk_interest_comment"
+                referencedTableName="comments"
+                baseColumnNames="comment_id"
+                baseTableName="interests" referencedColumnNames="id"/>
+    </changeSet>
+
+    <changeSet id="3.0.2" author="g.makarov">
+        <addForeignKeyConstraint
+                constraintName="fk_interest_user"
+                referencedTableName="users"
+                baseColumnNames="user_id"
+                baseTableName="interests" referencedColumnNames="id"/>
+    </changeSet>
+</databaseChangeLog>
