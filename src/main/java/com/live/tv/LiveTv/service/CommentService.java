@@ -8,14 +8,14 @@ import com.live.tv.LiveTv.entity.User;
 import com.live.tv.LiveTv.exception.EntityNotFoundException;
 import com.live.tv.LiveTv.service.db.CommentDbService;
 import com.live.tv.LiveTv.service.db.InterestDbService;
-import lombok.AllArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
-@AllArgsConstructor
 public class CommentService {
     private final String COMMENT_ENTITY_NAME = "Комментария";
     private final CommentConverter commentConverter;
@@ -23,6 +23,17 @@ public class CommentService {
     private final CommentDbService commentDbService;
     private final UserService userService;
     private final InterestDbService interestDbService;
+    private final CourtService courtService;
+
+    @Autowired
+    public CommentService(CommentConverter commentConverter, BroadcastService broadcastService, CommentDbService commentDbService, UserService userService, InterestDbService interestDbService, @Lazy CourtService courtService) {
+        this.commentConverter = commentConverter;
+        this.broadcastService = broadcastService;
+        this.commentDbService = commentDbService;
+        this.userService = userService;
+        this.interestDbService = interestDbService;
+        this.courtService = courtService;
+    }
 
     public List<Comment> getComments(Long broadcastId, int page, int pageSize) {
         broadcastService.checkBroadcastExists(broadcastId);
@@ -64,18 +75,33 @@ public class CommentService {
         commentDbService.deleteByIdAndBroadcastIdAndAuthorId(commentId, broadcastId, userId);
     }
 
-    public Comment giveJudgeReview(Long commentId, Long broadcastId, boolean isApproved) {
+    public Comment giveJudgeReview(Long commentId, Long broadcastId, boolean isApproved) throws Exception {
         User judge = userService.getUserFromContext();
         if (commentDbService.existsByIdAndBroadcastId(commentId, broadcastId)) {
             throw new EntityNotFoundException(COMMENT_ENTITY_NAME);
         }
+        List<User> judges = courtService.getCommentJudges(commentId);
+
+        if (!judges.stream().map(User::getEmail).toList().contains(judge.getEmail())) {
+            throw new Exception("Вы не являетесь судьей по данному процессу");
+        }
+        Long summaryJudges = courtService.getCommentSummaryJudges(commentId);
         Comment comment = commentDbService.findById(commentId);
         User commentAuthor = userService.getUserById(comment.getAuthorId());
         userService.checkReputationJudgeGreaterAuthor(judge, commentAuthor);
-        if (!isApproved) {
-            userService.setBanToUser(commentAuthor);
+        judges = courtService.removeCommentJudge(commentId, judge);
+        long mark = isApproved ? 1 : -1;
+        summaryJudges = summaryJudges + mark;
+        courtService.setCommentSummaryJudges(commentId, summaryJudges);
+
+        if (judges.isEmpty()) {
+            isApproved = courtService.geCommentSummaryJudgesMark(commentId);
+            if (!isApproved) {
+                userService.setBanToUser(commentAuthor);
+            }
+            comment.setCommentStatus(isApproved ? CommentStatus.APPROVED : CommentStatus.JUDGE_REJECTED);
+            courtService.removeCommentFromJudge(commentId);
         }
-        comment.setCommentStatus(isApproved ? CommentStatus.APPROVED : CommentStatus.JUDGE_REJECTED);
         return commentDbService.save(comment);
     }
 
@@ -99,7 +125,7 @@ public class CommentService {
         }
     }
 
-    public void checkExistsByIdAndBroadcastId(Long commentId, Long broadcastId){
+    public void checkExistsByIdAndBroadcastId(Long commentId, Long broadcastId) {
         if (commentDbService.existsByIdAndBroadcastId(commentId, broadcastId)) {
             throw new EntityNotFoundException(COMMENT_ENTITY_NAME);
         }

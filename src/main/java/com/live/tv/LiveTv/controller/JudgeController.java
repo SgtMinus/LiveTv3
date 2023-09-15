@@ -14,7 +14,7 @@ public class JudgeController {
     @PutMapping
     public ResponseEntity<?> giveReview(@PathVariable(name = "broadcastId") Long broadcastId,
                                         @PathVariable(name = "commentId") Long commentId,
-                                        @RequestParam(name = "isApproved") boolean isApproved) {
+                                        @RequestParam(name = "isApproved") boolean isApproved) throws Exception {
         return ResponseEntity.ok(commentService.giveJudgeReview(commentId, broadcastId, isApproved));
     }
 }

@@ -9,6 +9,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -22,13 +23,27 @@ public class CourtService {
     private final UserDbService userDbService;
     private final UserService userService;
     private final EmailService emailService;
+    private final Map<Long, List<User>> commentJudges = new HashMap<>();
+    private final Map<Long, Long> commentSummaryJudges = new HashMap<>();
+    private final Long DEFAULT_JUDGE_COUNT = 3L;
 
-    @Scheduled(cron = "0 */1 * * * *")
+    @Scheduled(cron = "*/30 * * * * *")
     public void startCourt() {
         List<Comment> comments = commentDbService.findAllByCommentStatus(CommentStatus.APPROVED);
+        comments.addAll(commentDbService.findAllByCommentStatus(CommentStatus.REVIEW));
         for (Comment comment : comments) {
             User author = userDbService.findUserById(comment.getAuthorId());
-            List<User> users = userDbService.findAllByReputationGreaterThan(author.getReputation()).stream().limit(3).toList();
+            List<User> users = new java.util.ArrayList<>(List.of());
+            List<User> alreadyJudges = getCommentJudges(comment.getId());
+            List<User> userGreaterReputation = userDbService.findAllByReputationGreaterThan(author.getReputation());
+            Collections.shuffle(userGreaterReputation);
+            if (alreadyJudges.size() == 0) {
+                users.addAll(userGreaterReputation.stream().limit(DEFAULT_JUDGE_COUNT).toList());
+            } else {
+                int countOfJudges = alreadyJudges.size();
+                users.addAll(userGreaterReputation.stream().limit(countOfJudges).toList());
+            }
+            addCommentJudges(comment.getId(), users);
             for (User judge : users) {
                 if (emailMessages.containsKey(judge.getEmail())) {
                     String message = emailMessages.get(judge.getEmail());
@@ -38,6 +53,8 @@ public class CourtService {
                     emailMessages.put(judge.getEmail(), commentService.getCommentUrl(comment));
                 }
             }
+            comment.setCommentStatus(CommentStatus.REVIEW);
+            commentDbService.save(comment);
         }
         emailService.send(emailMessages);
     }
@@ -53,5 +70,37 @@ public class CourtService {
             comment.setCommentStatus(CommentStatus.APPROVED);
         }
         commentDbService.saveAll(comments);
+    }
+
+    public List<User> getCommentJudges(Long commentId) {
+        return commentJudges.getOrDefault(commentId, List.of());
+    }
+
+    public void removeCommentFromJudge(Long commentId) {
+        commentJudges.remove(commentId);
+        commentSummaryJudges.remove(commentId);
+    }
+
+    public Long getCommentSummaryJudges(Long commentId) {
+        return commentSummaryJudges.getOrDefault(commentId, 0L);
+    }
+
+    public void setCommentSummaryJudges(Long commentId, Long summary) {
+        commentSummaryJudges.put(commentId, summary);
+    }
+
+    public boolean geCommentSummaryJudgesMark(Long commentId) {
+        return commentSummaryJudges.getOrDefault(commentId, 0L) >= 0;
+    }
+
+    public List<User> removeCommentJudge(Long commentId, User user) {
+        List<User> judges = getCommentJudges(commentId);
+        judges = judges.stream().filter(j -> !j.getEmail().equals(user.getEmail())).toList();
+        commentJudges.put(commentId, judges);
+        return getCommentJudges(commentId);
+    }
+
+    public void addCommentJudges(Long commentId, List<User> judges) {
+        commentJudges.put(commentId, judges);
     }
 }

@@ -9,7 +9,7 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.live.tv</groupId>
-	<artifactId>LiveTv</artifactId>
+	<artifactId>LiveTv2</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>LiveTv</name>
 	<description>Demo project for Spring Boot</description>
