@@ -30,3 +30,4 @@ public class BroadcastController {
         return ResponseEntity.ok(broadcastService.findAllByName(name, page, pageSize));
     }
 }
+

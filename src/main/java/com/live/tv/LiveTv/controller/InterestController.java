@@ -26,3 +26,4 @@ public class InterestController {
         return ResponseEntity.ok("Cущность удалена из бд!!!");
     }
 }
+

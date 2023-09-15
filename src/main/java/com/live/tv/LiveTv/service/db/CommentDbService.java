@@ -69,3 +69,4 @@ public class CommentDbService {
         return commentRepository.findAllByCommentStatus(commentStatus);
     }
 }
+

@@ -18,3 +18,4 @@ public class JudgeController {
         return ResponseEntity.ok(commentService.giveJudgeReview(commentId, broadcastId, isApproved));
     }
 }
+

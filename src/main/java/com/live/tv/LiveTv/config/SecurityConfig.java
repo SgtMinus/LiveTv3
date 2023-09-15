@@ -1,6 +1,5 @@
 package com.live.tv.LiveTv.config;
 
-
 import com.live.tv.LiveTv.security.jwt.JwtConfigurer;
 import com.live.tv.LiveTv.security.jwt.JwtTokenProvider;
 import lombok.AllArgsConstructor;
