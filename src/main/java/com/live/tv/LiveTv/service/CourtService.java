@@ -3,6 +3,7 @@ package com.live.tv.LiveTv.service;
 import com.live.tv.LiveTv.entity.Comment;
 import com.live.tv.LiveTv.entity.CommentStatus;
 import com.live.tv.LiveTv.entity.User;
+import com.live.tv.LiveTv.service.activemq.ProducerService;
 import com.live.tv.LiveTv.service.db.CommentDbService;
 import com.live.tv.LiveTv.service.db.UserDbService;
 import lombok.AllArgsConstructor;
@@ -22,12 +23,11 @@ public class CourtService {
     private final CommentService commentService;
     private final UserDbService userDbService;
     private final UserService userService;
-    private final EmailService emailService;
     private final Map<Long, List<User>> commentJudges = new HashMap<>();
     private final Map<Long, Long> commentSummaryJudges = new HashMap<>();
     private final Long DEFAULT_JUDGE_COUNT = 3L;
+    private final ProducerService producerService;
 
-    @Scheduled(cron = "*/30 * * * * *")
     public void startCourt() {
         List<Comment> comments = commentDbService.findAllByCommentStatus(CommentStatus.APPROVED);
         comments.addAll(commentDbService.findAllByCommentStatus(CommentStatus.REVIEW));
@@ -56,10 +56,10 @@ public class CourtService {
             comment.setCommentStatus(CommentStatus.REVIEW);
             commentDbService.save(comment);
         }
-        emailService.send(emailMessages);
+
+        producerService.send(emailMessages);
     }
 
-    @Scheduled(cron = "0 */3 * * * *")
     public void recoverPosts() {
         List<Comment> comments = commentDbService.findAllByCommentStatus(CommentStatus.JUDGE_REJECTED);
         for (Comment comment : comments) {

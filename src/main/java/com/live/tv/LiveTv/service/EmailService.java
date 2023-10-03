@@ -1,7 +1,9 @@
 package com.live.tv.LiveTv.service;
 
 import com.live.tv.LiveTv.config.EmailConfig;
+import com.live.tv.LiveTv.converter.EmailMessageConverter;
 import lombok.AllArgsConstructor;
+import org.springframework.jms.core.JmsTemplate;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
@@ -13,12 +15,6 @@ import java.util.Map;
 public class EmailService {
     private final JavaMailSender mailSender;
     private final EmailConfig emailConfig;
-
-    public void send(Map<String, String> emailMessages) {
-        for (String emailTo : emailMessages.keySet()) {
-            send(emailTo, emailMessages.get(emailTo));
-        }
-    }
 
     public void send(String emailTo, String message) {
         SimpleMailMessage mailMessage = new SimpleMailMessage();

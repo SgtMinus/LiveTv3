@@ -10,5 +10,11 @@ services:
       - postgres_data_volume:/var/lib/postgresql/data/
     ports:
       - "15432:5432"
+  activemq:
+    container_name: activemq
+    image: codingpuss/activemq:5.17.2-jre-19-alpine
+    ports:
+      - "8161:8161"
+      - "61616:61616"
 volumes:
   postgres_data_volume:
